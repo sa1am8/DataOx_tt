@@ -26,11 +26,14 @@ if __name__ == "__main__":
     import psycopg2
     from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-    connection = psycopg2.connect(user="postgres", password="12345")
+    with open('.config/password') as file:
+        password = file.readline()
+
+    connection = psycopg2.connect(user="postgres", password=password)
     connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
     cursor = connection.cursor()
-    #sql_create_database = cursor.execute('create database dataOx')
+    sql_create_database = cursor.execute('create database dataOx')
 
     cursor.close()
     connection.close()
@@ -40,5 +43,5 @@ if __name__ == "__main__":
 
     metadata_obj = MetaData()
     metadata_obj.create_all(engine)
-    #Base.metadata.create_all(engine)
+    Base.metadata.create_all(engine)
 

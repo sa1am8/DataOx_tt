@@ -28,7 +28,7 @@ async def parse_html(count: int):
 Session = sessionmaker(bind=engine)
 session = Session()
 
-for page in asyncio.run(parse_html(2)):
+for page in asyncio.run(parse_html(5)):
     soup = BeautifulSoup(page.text, "html.parser")
     for each_ad in soup.find_all('div', {"class": "clearfix"})[1:]:
         bedrooms = each_ad.find('span', {"class": "bedrooms"}).text.strip()
@@ -55,10 +55,8 @@ for page in asyncio.run(parse_html(2)):
 
         apartment = Apartment(bedrooms=bedrooms, img_source=img_source, title=title, location=location,
                               description=description, cost=cost, currency=currency, date=date)
-        print(apartment)
+        #print(apartment)
         session.add(apartment)
-        #break
-    #break
 
 session.commit()
 engine.dispose()
