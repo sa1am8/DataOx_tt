@@ -1,8 +1,12 @@
 import asyncio
+import datetime
+
 import httpx
 from bs4 import BeautifulSoup
+from sqlalchemy.orm import sessionmaker
 
-import datetime
+from models import Apartment
+from postgress import engine
 
 
 async def parse_html(count: int):
@@ -13,6 +17,7 @@ async def parse_html(count: int):
             for page in range(count)]
     urls[0] = 'https://www.kijiji.ca/b-apartments-condos/city-of-toronto/c37l1700273'
     print(urls)
+
     async with httpx.AsyncClient() as client:
         tasks = (client.get(url) for url in urls)
         res = await asyncio.gather(*tasks)
@@ -20,7 +25,10 @@ async def parse_html(count: int):
     return res
 
 
-for page in asyncio.run(parse_html(1)):
+Session = sessionmaker(bind=engine)
+session = Session()
+
+for page in asyncio.run(parse_html(2)):
     soup = BeautifulSoup(page.text, "html.parser")
     for each_ad in soup.find_all('div', {"class": "clearfix"})[1:]:
         bedrooms = each_ad.find('span', {"class": "bedrooms"}).text.strip()
@@ -36,15 +44,21 @@ for page in asyncio.run(parse_html(1)):
         if 'ago' in date:
             now = datetime.datetime.now()
             if 'minutes' in date:
-                if now.minutes < date.split()[1] and now.hour == 0:
-                    date = datetime.strftime(now - datetime.timedelta(1), "%d-%m-%Y")
+                if now.minute < int(date.split()[1]) and now.hour == 0:
+                    now = now - datetime.timedelta(1)
 
             elif 'hour' in date:
-                if now.hour - date.split()[1] < 0:
-                    date = datetime.strftime(now - datetime.timedelta(1), "%d-%m-%Y")
+                if now.hour - int(date.split()[1]) < 0:
+                    now = now - datetime.timedelta(1)
 
-            else:
-                date = datetime.strftime(now, "%d-%m-%Y")
+            date = now.strftime("%d-%m-%Y")
 
-        break
-    break
+        apartment = Apartment(bedrooms=bedrooms, img_source=img_source, title=title, location=location,
+                              description=description, cost=cost, currency=currency, date=date)
+        print(apartment)
+        session.add(apartment)
+        #break
+    #break
+
+session.commit()
+engine.dispose()
