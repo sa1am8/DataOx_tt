@@ -30,3 +30,4 @@ python google_sheet.py
 ```
 
 There is a limit on the number of requests on Google Sheet API, so first row will n`t be filled automatically.
+Example - https://docs.google.com/spreadsheets/d/19InfwMFJXtBbIciVoauoa_aeJiXpkwgSdlxvn8x-3WU/edit#gid=0
